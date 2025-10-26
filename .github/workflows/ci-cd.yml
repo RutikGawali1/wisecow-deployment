@@ -1,69 +1,53 @@
-name: CI/CD Pipeline
+name: Wisecow CI/CD
 
 on:
   push:
     branches: [ main ]
-
-env:
-  IMAGE_NAME: rutikgawali1/wisecow
+  pull_request:
+    branches: [ main ]
 
 jobs:
-  build-and-deploy:
+  build-and-test:
     runs-on: ubuntu-latest
-
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v2
-
-    - name: Login to Docker Hub
-      uses: docker/login-action@v2
-      with:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-    - name: Build and push Docker image
-      uses: docker/build-push-action@v5
-      with:
-        context: ./wisecow-k8s
-        file: ./wisecow-k8s/Dockerfile
-        push: true
-        tags: |
-          ${{ env.IMAGE_NAME }}:latest
-          ${{ env.IMAGE_NAME }}:${{ github.sha }}
-
-    - name: Set up kubectl and Minikube
+    - name: Build Docker image
       run: |
-        # Install kubectl
-        curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-        sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+        docker build -t wisecow:latest .
         
-        # Install Minikube
-        curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
-        sudo install minikube-linux-amd64 /usr/local/bin/minikube
-        
-        # Start Minikube
-        minikube start --driver=docker
-        minikube status
-
-    - name: Deploy application
+    - name: Test container
       run: |
-        # Apply deployment
-        kubectl apply -f wisecow-k8s/deployment.yaml
-        
-        # Update image
-        kubectl set image deployment/wisecow wisecow=${{ env.IMAGE_NAME }}:${{ github.sha }}
-        
-        # Wait for rollout
-        kubectl rollout status deployment/wisecow --timeout=300s
+        docker run -d --name wisecow-test -p 4499:4499 wisecow:latest
+        sleep 5
+        echo "Container logs:"
+        docker logs wisecow-test
+        echo "Testing connection..."
+        timeout 10 bash -c 'until nc -z localhost 4499; do sleep 1; done' && echo "Container is running"
 
-    - name: Verify deployment
+    - name: Stop test container
+      run: docker stop wisecow-test
+
+  deploy:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up kubectl
+      uses: azure/setup-kubectl@v3
+
+    - name: Configure kubeconfig
       run: |
-        echo "=== Deployment Status ==="
-        kubectl get deployments
-        echo "=== Pods Status ==="
-        kubectl get pods
-        echo "=== Rollout History ==="
-        kubectl rollout history deployment/wisecow
+        mkdir -p ~/.kube
+        echo "${{ secrets.KUBECONFIG }}" > ~/.kube/config
+
+    - name: Deploy to Kubernetes
+      run: |
+        kubectl apply -f k8s/
+        kubectl rollout status deployment/wisecow-deployment
+        kubectl get pods,svc,ingress
