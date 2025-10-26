@@ -4,7 +4,6 @@ metadata:
   name: wisecow-ingress
   annotations:
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
 spec:
   tls:
   - hosts:
@@ -18,6 +17,6 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: wisecow-service
+            name: wisecow
             port:
               number: 4499
