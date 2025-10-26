@@ -23,10 +23,11 @@ jobs:
       uses: docker/build-push-action@v5
       with:
         context: .
+        file: ./Dockerfile
         push: true
         tags: rutikgawali1/wisecow:latest
 
-    - name: Deploy to Kubernetes (optional)
+    - name: Deploy to Kubernetes
       run: |
         kubectl apply -f deployment.yaml
         kubectl apply -f service.yaml
