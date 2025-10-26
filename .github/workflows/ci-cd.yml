@@ -24,9 +24,11 @@ jobs:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-    - name: Build and push image
+    - name: Build and push Docker image
       uses: docker/build-push-action@v5
       with:
+        context: ./wisecow-k8s
+        file: ./wisecow-k8s/Dockerfile
         push: true
         tags: |
           ${{ env.IMAGE_NAME }}:latest
@@ -42,7 +44,7 @@ jobs:
         mkdir -p ~/.kube
         echo "${{ secrets.KUBECONFIG_BASE64 }}" | base64 --decode > ~/.kube/config
 
-    - name: Deploy updated image
+    - name: Deploy updated image to Kubernetes
       run: |
         kubectl set image deployment/wisecow wisecow=${{ env.IMAGE_NAME }}:${{ github.sha }} --record
         kubectl rollout status deployment/wisecow --timeout=90s
