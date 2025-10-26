@@ -43,8 +43,9 @@ jobs:
       run: |
         mkdir -p ~/.kube
         echo "${{ secrets.KUBECONFIG_BASE64 }}" | base64 --decode > ~/.kube/config
+        export KUBECONFIG=$HOME/.kube/config  # ensure kubectl uses the correct config
 
     - name: Deploy updated image to Kubernetes
       run: |
-        kubectl set image deployment/wisecow wisecow=${{ env.IMAGE_NAME }}:${{ github.sha }} --record
+        kubectl set image deployment/wisecow wisecow=${{ env.IMAGE_NAME }}:${{ github.sha }}
         kubectl rollout status deployment/wisecow --timeout=90s
