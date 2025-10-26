@@ -5,7 +5,7 @@ on:
     branches: [ main ]
 
 env:
-  IMAGE_NAME: your-dockerhub-username/wisecow
+  IMAGE_NAME: rutikgawali1/wisecow
 
 jobs:
   build-and-deploy:
