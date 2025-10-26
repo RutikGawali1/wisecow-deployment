@@ -34,18 +34,36 @@ jobs:
           ${{ env.IMAGE_NAME }}:latest
           ${{ env.IMAGE_NAME }}:${{ github.sha }}
 
-    - name: Set up kubectl
-      uses: azure/setup-kubectl@v4
-      with:
-        version: latest
-
-    - name: Configure kubeconfig
+    - name: Set up kubectl and Minikube
       run: |
-        mkdir -p ~/.kube
-        echo "${{ secrets.KUBECONFIG_BASE64 }}" | base64 --decode > ~/.kube/config
-        export KUBECONFIG=$HOME/.kube/config
+        # Install kubectl
+        curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+        sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+        
+        # Install Minikube
+        curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+        sudo install minikube-linux-amd64 /usr/local/bin/minikube
+        
+        # Start Minikube
+        minikube start --driver=docker
+        minikube status
 
-    - name: Deploy updated image to Kubernetes
+    - name: Deploy application
       run: |
+        # Apply deployment
+        kubectl apply -f wisecow-k8s/deployment.yaml
+        
+        # Update image
         kubectl set image deployment/wisecow wisecow=${{ env.IMAGE_NAME }}:${{ github.sha }}
-        kubectl rollout status deployment/wisecow --timeout=90s
+        
+        # Wait for rollout
+        kubectl rollout status deployment/wisecow --timeout=300s
+
+    - name: Verify deployment
+      run: |
+        echo "=== Deployment Status ==="
+        kubectl get deployments
+        echo "=== Pods Status ==="
+        kubectl get pods
+        echo "=== Rollout History ==="
+        kubectl rollout history deployment/wisecow
