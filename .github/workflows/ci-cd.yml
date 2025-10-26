@@ -43,7 +43,7 @@ jobs:
       run: |
         mkdir -p ~/.kube
         echo "${{ secrets.KUBECONFIG_BASE64 }}" | base64 --decode > ~/.kube/config
-        export KUBECONFIG=$HOME/.kube/config  # ensure kubectl uses the correct config
+        export KUBECONFIG=$HOME/.kube/config
 
     - name: Deploy updated image to Kubernetes
       run: |
