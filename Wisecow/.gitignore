@@ -1,0 +1,43 @@
+# Node / Wisecow build artifacts
+node_modules/
+dist/
+build/
+
+# Python artifacts (if any)
+__pycache__/
+*.pyc
+
+# Kubernetes / KubeArmor logs and local configs
+*.log
+*.out
+
+# Minikube / local Kubernetes cluster files
+minikube-linux-amd64
+*.kubeconfig
+*.bin
+*.exe
+*.zip
+*.tar
+*.tar.gz
+*.jar
+*.so
+
+# Secrets / TLS certificates and keys
+*.crt
+*.key
+secrets.yaml
+
+# Shell scripts if sensitive
+*.sh
+
+# VSCode settings
+.vscode/
+
+# Mac / Windows system files
+.DS_Store
+Thumbs.db
+
+# Large files (optional, catch anything above ~50MB)
+*.iso
+*.img
+*.dmg
