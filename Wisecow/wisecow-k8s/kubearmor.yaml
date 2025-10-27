@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: kubearmor
+  namespace: kube-system
+spec:
+  selector:
+    matchLabels:
+      name: kubearmor
+  template:
+    metadata:
+      labels:
+        name: kubearmor
+    spec:
+      serviceAccountName: kubearmor   # <-- added service account
+      containers:
+        - name: kubearmor
+          image: kubearmor/kubearmor:latest
+          securityContext:
+            privileged: true
+          volumeMounts:
+            - mountPath: /var/run/docker.sock
+              name: docker-socket
+      volumes:
+        - name: docker-socket
+          hostPath:
+            path: /var/run/docker.sock

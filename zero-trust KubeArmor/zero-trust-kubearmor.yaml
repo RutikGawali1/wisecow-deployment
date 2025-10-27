@@ -1,0 +1,32 @@
+apiVersion: security.kubearmor.com/v1
+kind: KubeArmorPolicy
+metadata:
+  name: zero-trust-kubearmor
+  namespace: default
+spec:
+  # Allowed processes in the cluster
+  process:
+    allow:
+      - "/bin/bash"
+      - "/bin/sh"
+      - "/usr/bin/python3"
+      - "/usr/bin/ssh"
+      - "/usr/bin/curl"
+      - "/usr/bin/wget"
+
+  # Allowed file paths
+  file:
+    allow:
+      - "/bin/*"
+      - "/usr/bin/*"
+      - "/etc/passwd"
+      - "/etc/group"
+      - "/var/log/*"
+      - "/tmp/*"
+
+  # Allowed network connections
+  network:
+    allow:
+      - "80/tcp"
+      - "443/tcp"
+      - "53/udp"
