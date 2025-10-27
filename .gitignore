@@ -14,6 +14,13 @@ __pycache__/
 # Minikube / local Kubernetes cluster files
 minikube-linux-amd64
 *.kubeconfig
+*.bin
+*.exe
+*.zip
+*.tar
+*.tar.gz
+*.jar
+*.so
 
 # Secrets / TLS certificates and keys
 *.crt
@@ -29,3 +36,8 @@ secrets.yaml
 # Mac / Windows system files
 .DS_Store
 Thumbs.db
+
+# Large files (optional, catch anything above ~50MB)
+*.iso
+*.img
+*.dmg
